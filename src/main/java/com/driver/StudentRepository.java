@@ -5,74 +5,61 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class StudentRepository {
-
-    Map<String,Student> studentdb = new HashMap<>();
-
-    Map<String,Teacher> teacherdb = new HashMap<>();
-
-    Map<String,String> teacherStudentPairdb = new HashMap<>();
+    HashMap<String , Student> studentdb = new HashMap<>();
+    HashMap<String , Teacher> teacherdb = new HashMap<>();
+    HashMap<String , List<String>> student_teacherdb = new HashMap<>();
 
     public void addStudent(Student student){
-        studentdb.put(student.getName(), student);
+        studentdb.put(student.getName(),student);
     }
-
     public void addTeacher(Teacher teacher){
-        teacherdb.put(teacher.getName(), teacher);
+        teacherdb.put(teacher.getName(),teacher);
     }
-
-    public void teacherStudentPair(String studentName, String teacherName){
-        teacherStudentPairdb.put(studentName, teacherName);
+    public void addStudentTeacherPair(String student , String teacher){
+        if(student_teacherdb.containsKey(teacher)){
+            List<String> teacher_list = student_teacherdb.get(teacher);
+            teacher_list.add(student);
+            student_teacherdb.put(teacher,teacher_list);
+        }else{
+            List<String> teacher_list = new ArrayList<>();
+            teacher_list.add(student);
+            student_teacherdb.put(teacher,teacher_list);
+        }
     }
-    public Student getStudentByName(String studentName){
-        return studentdb.get(studentName);
+    public Student getStudentByName(String name){
+        return studentdb.get(name);
     }
-
-    public Teacher getTeacherByName(String teacherName){
-        return teacherdb.get(teacherName);
+    public Teacher getTeacherByName(String name){
+        return  teacherdb.get(name);
     }
-
-    public List<String> getStudnetListForteacher(String teacher){
+    public List<String> getStudentByTeacherName(String teacher){
+        return student_teacherdb.get(teacher);
+    }
+    public List<String> getAllStudent(){
         List<String> list = new ArrayList<>();
-        for(Map.Entry<String,String> entry : teacherStudentPairdb.entrySet()){
-            if(entry.getValue().equals(teacher)){
-                String studentName = entry.getKey();
-                list.add(studentName);
-            }
+        for(String s : studentdb.keySet()){
+            list.add(s);
         }
         return list;
     }
-
-    public List<String> getListOfStudents(){
-        List<String> studentList = new ArrayList<>();
-        for(String student : studentdb.keySet()){
-            studentList.add(student);
+    public void deleteTeacherByName(String teacher){
+        List<String> student_list = student_teacherdb.get(teacher);
+        for(String s : student_list){
+            studentdb.remove(s);
         }
-        return studentList;
-    }
-
-    public void deleteTeacher(String teacher){
         teacherdb.remove(teacher);
-        for(Map.Entry<String, String> entry : teacherStudentPairdb.entrySet()){
-            if(entry.getValue().equals(teacher)){
-                String student = entry.getKey();
-                studentdb.remove(student);
-                teacherStudentPairdb.remove(student, teacher);
-            }
-        }
+        student_teacherdb.remove(teacher);
     }
-
-    public void deleteAllTeachersAndStudents(){
-
-        for(Map.Entry<String,String> entry : teacherStudentPairdb.entrySet()){
-            String student = entry.getKey();
-            String teacher = entry.getValue();
-            teacherStudentPairdb.remove(student, teacher);
-            studentdb.remove(student);
-            teacherdb.remove(teacher);
+    public void deleteAllTeachers() {
+        for (List<String> student_list : student_teacherdb.values()) {
+            for (String s : student_list) {
+                studentdb.remove(s);
+            }
+            teacherdb.clear();
+            student_teacherdb.clear();
         }
     }
 }
